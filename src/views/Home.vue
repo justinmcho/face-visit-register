@@ -5,24 +5,26 @@
       :src="require('../assets/main_bg_pattern2.png')"
       alt="Background"
     />
-    <div class="titleContainer">
-      <header class="title">Welcome</header>
-    </div>
-    <div class="description">
-      Alignment Day 신청을 위해
-      <br />
-      아래 신청하기 버튼을 눌러주세요.
-    </div>
-    <div class="registerButton">
-      <v-btn size="large" class="text-blue-darken-3" to="./info"
-        >신청하기</v-btn
-      >
-    </div>
-    <div class="facevisitLogo">
-      <img
-        :src="require('../assets/facevisit_logo_white.png')"
-        alt="FACEVISIT"
-      />
+    <div class="textContainer">
+      <div class="titleContainer">
+        <header class="title">Welcome</header>
+      </div>
+      <div class="description">
+        Alignment Day 신청을 위해
+        <br />
+        아래 신청하기 버튼을 눌러주세요.
+      </div>
+      <div class="registerButton">
+        <v-btn size="large" class="text-blue-darken-3" to="./info"
+          >신청하기</v-btn
+        >
+      </div>
+      <div class="facevisitLogo">
+        <img
+          :src="require('../assets/facevisit_logo_white.png')"
+          alt="FACEVISIT"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -31,7 +33,7 @@
 export default {};
 </script>
 
-<style>
+<style scoped>
 .entire {
   height: 100vh;
   width: 100vw;
@@ -43,7 +45,14 @@ export default {};
   width: 100vw;
   background-color: #3b45ff !important;
   position: absolute;
-  z-index: -5;
+  z-index: 0;
+}
+.textContainer {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
 }
 .titleContainer {
   flex: 1;
@@ -73,6 +82,5 @@ export default {};
   align-self: center;
   justify-content: flex-end;
   justify-self: flex-end;
-  /* padding-bottom: 5vh; */
 }
 </style>

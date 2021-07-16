@@ -1,8 +1,11 @@
 <template>
-  <v-card class="card">
-    <v-card class="card-title">FaceVisit 방문자 관리</v-card>
-    <!-- <img :src="savedImage" alt="등록된 얼굴 이미지" /> -->
-    <div>
+  <div class="entire">
+    <div class="titleContainer">
+      <header class="title">FACEVISIT 방문자 관리</header>
+      <div class="title-description">사진 촬영</div>
+      <div style="color: red">{{ errorMessage }}</div>
+    </div>
+    <div class="videoContainer">
       <div v-show="!savedImage">
         <video ref="video" autoplay playsinline class="video">
           Video stream not available.
@@ -18,12 +21,30 @@
       </div>
     </div>
     <div class="buttons-container">
-      <v-btn class="button-cancel" width="120" @click="close">취소</v-btn>
-      <v-btn class="button-confirm" width="120" @click="capture()"
+      <v-btn size="large" color="#3B45FF" class="text-white" @click="capture()"
         >얼굴 등록</v-btn
       >
+      <router-link
+        style="
+          text-decoration: none;
+          color: #363636;
+          border: 0px;
+          border-bottom-width: 2px;
+          border-bottom-color: #363636;
+          border-style: solid;
+          padding-top: 1vh;
+        "
+        :to="{ name: 'Home' }"
+        >처음으로</router-link
+      >
+      <div class="facevisitLogo">
+        <img
+          :src="require('../assets/facevisit_logo_black.png')"
+          alt="FACEVISIT"
+        />
+      </div>
     </div>
-  </v-card>
+  </div>
 </template>
 
 <script>
@@ -49,6 +70,8 @@ export default {
       face: { x: 0, y: 0, w: 0, h: 0 },
       savedImage: null,
       name: this.$route.params.name,
+      phoneNumber: this.$route.params.phoneNumber,
+      errorMessage: "",
     };
   },
 
@@ -66,12 +89,16 @@ export default {
     initialize() {
       console.log("@@", this.$refs);
       const dialogWidth = this.$refs.canvas.parentElement.clientWidth;
-      if (dialogWidth < 500) {
+      if (dialogWidth < window.innerWidth) {
         this.$refs.canvas.style = `transform: translateX(-${
-          (500 - dialogWidth) / 2
+          (window.innerWidth - dialogWidth) / 2
         }px);`;
       }
-      const config = { width: 500, height: 500, facingMode: "user" };
+      const config = {
+        width: window.innerWidth,
+        height: window.innerWidth,
+        facingMode: "user",
+      };
       console.log("WebCamCapture#initialize", config);
       navigator.mediaDevices
         .getUserMedia({ video: config, audio: false })
@@ -155,7 +182,8 @@ export default {
       let last = Date.now();
       let updateMemory = pico.instantiate_detection_memory(5);
       let loop = () => {
-        if (Date.now() - last < 100) {
+        // @FIXME value of 1 used to be 1000
+        if (Date.now() - last < 1) {
           cancelAnimationFrame(this.requestAnimationFrameId);
           this.requestAnimationFrameId = requestAnimationFrame(loop);
           return;
@@ -265,9 +293,10 @@ export default {
       return new File([u8arr], filename, { type: mime });
     },
 
-    //Usage example:
     capture() {
       let capturedImage = this.$refs.canvas.toDataURL("image/jpeg");
+      this.savedImage = capturedImage;
+      var message = "";
       var file = this.dataURLtoFile(capturedImage, "example.jpeg");
 
       let formdata = new FormData();
@@ -277,34 +306,46 @@ export default {
         method: "POST",
         body: formdata,
         headers: {
-          uid: this.name,
+          uid: encodeURIComponent(this.name),
           "x-rapidapi-key":
             "8ef6747d69msh29f2c995e13af90p11ef82jsndb400bfdef04",
           "x-rapidapi-host": "alchera-face-authentication.p.rapidapi.com",
         },
       };
 
-      // delete options.headers["Content-Type"];
-
       fetch(
         "https://alchera-face-authentication.p.rapidapi.com/v1/face",
         options
       )
         .then((response) => response.json())
-        .then((json) => console.log(json));
+        .then((json) => {
+          console.log(json);
+          message = json.result.message;
+        })
+        .finally(() => {
+          if (message !== "OK") {
+            this.errorMessage = message;
+          } else {
+            this.close();
+            this.$router.push({
+              name: "Confirmation",
+              params: {
+                name: this.name,
+                phoneNumber: this.phoneNumber,
+                savedImage: this.savedImage,
+              },
+            });
+          }
+          console.log(message);
+        });
 
+      // Uncomment below to use face recognition feature as well
       // this.cropImage(this.$refs.canvas.toDataURL("image/jpeg"), (image) => {
       //   this.$emit("input", false);
-      //   console.log(image);
       //   const base64Image = image.split(",")[1];
       //   this.$emit("capture", base64Image);
-      //   //base64Image -> modify & sent image
       //   this.savedImage = base64Image;
-      //   console.log("Before");
-      //   console.log(base64Image);
-      //   console.log("After");
 
-      this.close();
       // });
     },
     close() {
@@ -316,22 +357,37 @@ export default {
 </script>
 
 <style scoped>
-.card {
-  padding-bottom: 20px;
-}
-.card-title {
+.entire {
+  height: 100vh;
+  width: 100vw;
   display: flex;
-  color: #3a7bc6 !important;
-  font-weight: bold !important;
-  font-size: 28px !important;
-  padding-top: 30px !important;
-  padding-left: 40px !important;
-  padding-bottom: 30px !important;
+  flex-direction: column;
+  background-color: #f7f7f7 !important;
+}
+.titleContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.title {
+  color: #3b45ff;
+  font-weight: bold;
+}
+.title-description {
+  color: black;
+  font-weight: 700;
+}
+.videoContainer {
+  flex: 1;
+  align-self: center;
+  width: 100vw;
+  height: 100vh;
+  transform: scaleX(-1);
 }
 
 .video {
-  width: 500px;
-  height: 500px;
   display: none;
 }
 
@@ -349,5 +405,14 @@ export default {
   background-color: #3b77ff !important;
   color: #ffffff !important;
   border-radius: 4px;
+}
+.buttons-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.facevisitLogo {
+  padding-top: 5vh;
 }
 </style>

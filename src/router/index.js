@@ -21,6 +21,11 @@ const routes = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/Capture.vue"),
   },
+  {
+    path: "/confirmation",
+    name: "Confirmation",
+    component: () => import("../views/Confirmation.vue"),
+  },
 ];
 
 const router = createRouter({
